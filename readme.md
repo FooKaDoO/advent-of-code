@@ -1,1 +1,1 @@
-This are my Advent of Code solutions.
+These are my Advent of Code solutions.
