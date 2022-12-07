@@ -9,7 +9,7 @@ class Directory:
     def printSelf(self, spaces=""):
         print(spaces + "-", self.name, "(dir)")
         for child in self.children:
-            child.printSelf(spaces + " ")
+            child.printSelf(spaces + "  ")
 
 class File:
     def __init__(self, name, size):
