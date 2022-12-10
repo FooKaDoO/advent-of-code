@@ -18,7 +18,7 @@ def createRope(rope_length):
     rope = []
     while rope_length > 0:
         t = Turtle()
-        t.up()
+        #t.up()
         t.goto(0, 0)
         t.speed(0)
 
