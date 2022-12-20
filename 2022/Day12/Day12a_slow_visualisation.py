@@ -1,6 +1,8 @@
 from tkinter import *
 from heapq import heappop, heappush
-
+from queue import Queue
+import time
+import threading
 HEIGHTS = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 HEIGHT_MAP = []
 START_X = 0
@@ -50,21 +52,13 @@ def makeSquares(path):
     for x in range(i):
         for y in range(j):
             height_value = int(HEIGHT_MAP[x][y] * 10.2)
-            color = RGB((height_value, 255 - height_value,0))
-            if (x, y) in path:
-                color = "#ffffff"
-            if (x == END_X and y == END_Y):
-                color = "#000000"
+            blue = 0
+            if (x, y) in path or (x, y) == (END_X, END_Y):
+                blue = 255
+            color = RGB((height_value, 255 - height_value,blue))
             heights.create_rectangle(5 + y * cell_size, 5 + x * cell_size, 5 + (y + 1) * cell_size,
                                      5 + (x + 1) * cell_size, fill=color)
 
-
-def iteration(index):
-    if index <= len(visualised_path):
-        makeSquares(visualised_path[:index])
-        frame.after(5, iteration, index + 1)
-    else:
-        return
 
 '''
     For this solution, since I've been learning graphs in university,
@@ -87,33 +81,43 @@ def neighbors(x, y):
         if HEIGHT_MAP[xx][yy] <= HEIGHT_MAP[x][y] + 1:
             yield xx, yy
 
-
-visualised_path = []
 visited = [[False] * j for _ in range(i)]
 heap = [(0, START_X, START_Y)]
 makeSquares([(START_X, START_Y)])
+nextSquare = Queue()
 
-def while_iteration():
-    steps, x, y = heappop(heap)
-    #visualised_path.append((x, y))
-    if visited[x][y]:
-        frame.after(5, while_iteration)
-    visited[x][y] = True
-    # display current path
+def visualise():
+    while nextSquare.qsize() == 0:
+        time.sleep(1)
+    x, y = nextSquare.get()
+    # create square
+    height_value = int(HEIGHT_MAP[x][y] * 10.2)
+    color = RGB((height_value, 255 - height_value, 255))
     heights.create_rectangle(5 + y * cell_size, 5 + x * cell_size, 5 + (y + 1) * cell_size,
-                             5 + (x + 1) * cell_size, fill="white")
-    #frame.after(5, iteration, 1)
-    # we reached end
-    if (x, y) == (END_X, END_Y):
-        print(steps)
-        return
+                             5 + (x + 1) * cell_size, fill=color)
 
-    for xx, yy in neighbors(x, y):
-        heappush(heap, (steps + 1, xx, yy))
-    # next loop
-    frame.after(5, while_iteration)
+    frame.after(10, visualise)
 
+def while_thread():
+    while True:
+        steps, x, y = heappop(heap)
+        # visualised_path.append((x, y))
+        if visited[x][y]:
+            continue
+        visited[x][y] = True
+        # display current path
+        nextSquare.put((x, y))
 
-while_iteration()
+        # we reached end
+        if (x, y) == (END_X, END_Y):
+            print(steps)
+            break
+
+        for xx, yy in neighbors(x, y):
+            heappush(heap, (steps + 1, xx, yy))
+
+t1 = threading.Thread(target=while_thread)
+t1.start()
+frame.after(200, visualise)
 
 frame.mainloop()
